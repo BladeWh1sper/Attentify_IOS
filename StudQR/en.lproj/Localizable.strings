@@ -1,0 +1,48 @@
+/* 
+  Localizable.strings
+  StudQR
+
+  Created by Andrew Belik on 5/26/25.
+  
+*/
+
+main_tab = "Main";
+scan_tab = "Scan";
+schedule_tab = "Schedule";
+profile_tab = "Profile";
+login_tab = "Login";
+login_prompt = "Please log in";
+no_classes = "No lessons today";
+login_prompt = "Please log in";
+no_classes_today = "No classes today";
+today_title = "Today";
+login_prompt = "Please log in";
+no_classes = "No classes today";
+login_success = "✅ Logged in!";
+login_title = "Login";
+email_placeholder = "Email";
+password_placeholder = "Password";
+login_button = "Login";
+login_error = "Invalid email or password";
+profile_title = "Profile";
+name = "Name";
+phone = "Phone";
+role = "Role";
+groups = "Groups";
+logout = "Logout";
+profile_loading = "Loading profile...";
+settings_title = "Settings";
+language_section = "Application language";
+language_picker = "Language";
+theme_section = "Appearance";
+theme_picker = "Theme";
+theme_light = "Light";
+theme_dark = "Dark";
+theme_system = "System default";
+lesson_number = "lesson";
+classroom = "Classroom";
+scan_button = "Scan QR";
+scan_success = "Attendance confirmed ✅";
+scan_already = "Already marked 🙃";
+scan_failure = "QR scan error ❌";
+login_prompt = "Please log in";

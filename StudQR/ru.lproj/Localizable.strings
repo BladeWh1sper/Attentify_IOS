@@ -1,0 +1,48 @@
+/* 
+  Localizable.strings
+  StudQR
+
+  Created by Andrew Belik on 5/26/25.
+  
+*/
+
+main_tab = "Главная";
+scan_tab = "Сканировать";
+schedule_tab = "Расписание";
+profile_tab = "Профиль";
+login_tab = "Войти";
+login_prompt = "Авторизуйтесь";
+no_classes = "Сегодня пар нет";
+login_prompt = "Авторизуйтесь";
+no_classes_today = "Сегодня пар нет";
+today_title = "Сегодня";
+login_prompt = "Авторизуйтесь";
+no_classes = "Пар нет";
+login_success = "✅ Вы вошли!";
+login_title = "Вход в аккаунт";
+email_placeholder = "Email";
+password_placeholder = "Пароль";
+login_button = "Войти";
+login_error = "Неправильный логин или пароль";
+profile_title = "Профиль";
+name = "Имя";
+phone = "Телефон";
+role = "Роль";
+groups = "Группы";
+logout = "Выйти";
+profile_loading = "Загрузка профиля...";
+settings_title = "Настройки";
+language_section = "Язык приложения";
+language_picker = "Язык";
+theme_section = "Тема оформления";
+theme_picker = "Тема";
+theme_light = "Светлая";
+theme_dark = "Тёмная";
+theme_system = "Как в системе";
+lesson_number = "пара";
+classroom = "Аудитория";
+scan_button = "Отсканировать QR";
+scan_success = "Посещение подтверждено ✅";
+scan_already = "Уже отметились 🙃";
+scan_failure = "Ошибка считывания QR ❌";
+login_prompt = "Авторизуйтесь";
