@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Lesson: Identifiable, Equatable, Hashable, Decodable {
+public struct Lesson: Identifiable, Equatable, Hashable {
     public let id: Int
     public let lessonNumber: Int
     public let time: String
@@ -16,6 +16,9 @@ public struct Lesson: Identifiable, Equatable, Hashable, Decodable {
     public let teacher: LocalizedField
     public let classroom: String
 
+    public let groups: [LocalizedField]
+    public let isVirtual: Bool
+
     public init(
         id: Int,
         lessonNumber: Int,
@@ -23,7 +26,9 @@ public struct Lesson: Identifiable, Equatable, Hashable, Decodable {
         subject: LocalizedField,
         type: LocalizedField,
         teacher: LocalizedField,
-        classroom: String
+        classroom: String,
+        groups: [LocalizedField] = [],
+        isVirtual: Bool = false
     ) {
         self.id = id
         self.lessonNumber = lessonNumber
@@ -32,5 +37,7 @@ public struct Lesson: Identifiable, Equatable, Hashable, Decodable {
         self.type = type
         self.teacher = teacher
         self.classroom = classroom
+        self.groups = groups
+        self.isVirtual = isVirtual
     }
 }

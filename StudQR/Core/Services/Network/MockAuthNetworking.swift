@@ -35,28 +35,48 @@ struct MockAuthNetworking: AuthNetworking {
             completion(.success(profile))
         }
     }
-
-    func fetchSchedule(token: String, date: Date, completion: @escaping ([Lesson]) -> Void) {
+    
+    //  Новый метод согласно протоколу
+    func fetchSchedule(token: String, date: Date, role: ScheduleRole, completion: @escaping ([Lesson]) -> Void) {
         let lessons: [Lesson] = [
-            Lesson(id: 1, lessonNumber: 1, time: "09:00 — 10:35",
-                   subject: LocalizedField(ru: "Математика", en: "Math"),
-                   type: LocalizedField(ru: "Лекция", en: "Lecture"),
-                   teacher: LocalizedField(ru: "Петров П. П.", en: "Petrov P.P."),
-                   classroom: "A-101"),
-            Lesson(id: 2, lessonNumber: 2, time: "10:50 — 12:25",
-                   subject: LocalizedField(ru: "Математика", en: "Math"),
-                   type: LocalizedField(ru: "Лекция", en: "Lecture"),
-                   teacher: LocalizedField(ru: "Петров П. П.", en: "Petrov P.P."),
-                   classroom: "A-101")
+            Lesson(
+                id: 1,
+                lessonNumber: 1,
+                time: "09:00 — 10:35",
+                subject: LocalizedField(ru: "Алгебра", en: "Algebra"),
+                type: LocalizedField(ru: "Лекция", en: "Lecture"),
+                teacher: LocalizedField(ru: "Петров П. П.", en: "Petrov P.P."),
+                classroom: role == .teacher ? "А-201" : "А-101"
+            ),
+            Lesson(
+                id: 2,
+                lessonNumber: 2,
+                time: "10:50 — 12:25",
+                subject: LocalizedField(ru: "Программирование", en: "Programming"),
+                type: LocalizedField(ru: "Практика", en: "Practice"),
+                teacher: LocalizedField(ru: "Сидоров С. С.", en: "Sidorov S.S."),
+                classroom: role == .teacher ? "Л-550" : "Л-350"
+            )
         ]
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             completion(lessons)
         }
     }
-
+    
+    // Обёртка для обратной совместимости (дефолт: student)
+    func fetchSchedule(token: String, date: Date, completion: @escaping ([Lesson]) -> Void) {
+        fetchSchedule(token: token, date: date, role: .student, completion: completion)
+    }
+    
     func confirmAttendance(token: String, code: String, completion: @escaping (AttendanceStatus) -> Void) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             completion(.success)
+        }
+    }
+    
+    func createSession(token: String, completion: @escaping (Result<String, Error>) -> Void) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            completion(.success("mock-session-key-abcdef123456"))
         }
     }
 }

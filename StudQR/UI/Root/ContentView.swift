@@ -15,21 +15,33 @@ struct ContentView: View {
         NavigationStack {
             if authViewModel.isAuthenticated {
                 TabView {
-                    MainPageView()
-                        .tabItem {
-                            Label(localized("main_tab"), systemImage: "house")
-                        }
+                    if authViewModel.isTeacher{
+                        TeacherMainPageView()
+                            .tabItem {
+                                Label(localized("main_tab"), systemImage: "house")
+                            }
 
-                    QRCodeScannerView()
-                        .tabItem {
-                            Label(localized("scan_tab"), systemImage: "qrcode.viewfinder")
-                        }
-
-                    ScheduleView()
-                        .tabItem {
-                            Label(localized("schedule_tab"), systemImage: "calendar")
-                        }
-
+                        TeacherScheduleView()
+                            .tabItem {
+                                Label(localized("schedule_tab"), systemImage: "calendar")
+                            }
+                    } else {
+                        MainPageView()
+                            .tabItem {
+                                Label(localized("main_tab"), systemImage: "house")
+                            }
+                        
+                        QRCodeScannerView()
+                            .tabItem {
+                                Label(localized("scan_tab"), systemImage: "qrcode.viewfinder")
+                            }
+                        
+                        ScheduleView()
+                            .tabItem {
+                                Label(localized("schedule_tab"), systemImage: "calendar")
+                            }
+                    }
+                    
                     ProfileView()
                         .tabItem {
                             Label(localized("profile_tab"), systemImage: "person.crop.circle")

@@ -61,30 +61,30 @@ enum AuthAPIService {
         }.resume()
     }
 
-    static func fetchSchedule(token: String, date: Date, completion: @escaping ([Lesson]) -> Void) {
+    static func fetchSchedule(token: String, date: Date, role: ScheduleRole, completion: @escaping ([Lesson]) -> Void) {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         let dateString = formatter.string(from: date)
 
-        let baseUrl = Constants.baseURL + Constants.scheduleEndpoint
-        guard var components = URLComponents(string: baseUrl) else {
-            completion([]); return
-        }
+        
+        let baseUrl: String = {
+            switch role {
+            case .student: return Constants.baseURL + Constants.scheduleEndpoint
+            case .teacher: return Constants.baseURL + Constants.teacherScheduleEndpoint
+            }
+        }()
+
+        guard var components = URLComponents(string: baseUrl) else { completion([]); return }
         components.queryItems = [URLQueryItem(name: "target_date", value: dateString)]
-        guard let url = components.url else {
-            completion([]); return
-        }
+        guard let url = components.url else { completion([]); return }
 
         var request = URLRequest(url: url)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.httpMethod = "GET"
 
         URLSession.shared.dataTask(with: request) { data, _, _ in
-            guard let data = data else {
-                completion([]); return
-            }
+            guard let data = data else { completion([]); return }
             do {
-                // ВАЖНО: декодируем DTO и маппим в доменную модель
                 let dtoList = try JSONDecoder().decode([LessonDTO].self, from: data)
                 let lessons = dtoList.map { $0.toDomain() }
                 completion(lessons)
@@ -122,6 +122,28 @@ enum AuthAPIService {
                 case 409: completion(.alreadyMarked)
                 default:  completion(.failure)
                 }
+            }
+        }.resume()
+    }
+    
+    static func createSession(token: String, completion: @escaping (Result<String, Error>) -> Void) {
+        guard let url = URL(string: Constants.baseURL + Constants.sessionCreateEndpoint) else {
+            completion(.failure(NSError())); return
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { data, _, error in
+            if let error = error { completion(.failure(error)); return }
+            guard let data = data else { completion(.failure(NSError())); return }
+            // предполагаем простой ответ: { "session_key": "..." }
+            struct SessionResp: Decodable { let session_key: String }
+            do {
+                let resp = try JSONDecoder().decode(SessionResp.self, from: data)
+                completion(.success(resp.session_key))
+            } catch {
+                completion(.failure(error))
             }
         }.resume()
     }

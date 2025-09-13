@@ -20,7 +20,7 @@ final class AuthViewModel: ObservableObject {
     private let baseURL = Constants.baseURL
 
     // ⬇️ Внедряем зависимость сети
-    private let api: AuthNetworking
+    let api: AuthNetworking
 
     // ⬇️ Дефолт — реальная сеть; в превью подменим
     init(api: AuthNetworking = RealAuthNetworking()) {
@@ -66,7 +66,13 @@ final class AuthViewModel: ObservableObject {
         profile = nil
         isAuthenticated = false
     }
-
+    
+    func fetchSchedule(for date: Date, role: ScheduleRole, completion: @escaping ([Lesson]) -> Void) {
+        guard let token = token else { completion([]); return }
+        api.fetchSchedule(token: token, date: date, role: role, completion: completion)
+    }
+    
+    // Старая версия — остаётся, дефолт student
     func fetchSchedule(for date: Date, completion: @escaping ([Lesson]) -> Void) {
         guard let token = token else { completion([]); return }
         api.fetchSchedule(token: token, date: date, completion: completion)
@@ -75,5 +81,12 @@ final class AuthViewModel: ObservableObject {
     func confirmAttendance(with code: String, completion: @escaping (AttendanceStatus) -> Void) {
         guard let token = token else { completion(.failure); return }
         api.confirmAttendance(token: token, code: code, completion: completion)
+    }
+}
+
+extension AuthViewModel {
+    var isTeacher: Bool {
+        guard let role = profile?.role.name else { return false }
+        return role.en.lowercased().contains("teacher") || role.ru.lowercased().contains("преподав")
     }
 }

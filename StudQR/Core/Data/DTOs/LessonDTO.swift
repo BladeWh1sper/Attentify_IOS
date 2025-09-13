@@ -14,6 +14,7 @@ struct LessonDTO: Decodable {
     let lessonType: LocalizedNameBox
     let teacherInfo: TeacherNameBox
     let location: LocationBox
+    let groups: [GroupBox]?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -22,6 +23,7 @@ struct LessonDTO: Decodable {
         case lessonType = "lesson_type"
         case teacherInfo = "teacher"
         case location
+        case groups
     }
 
     struct LessonPeriod: Decodable {
@@ -55,13 +57,23 @@ struct LessonDTO: Decodable {
     struct LocationBox: Decodable {
         let site: Site
         let roomNumber: String
+        let isVirtual: Bool?
         enum CodingKeys: String, CodingKey {
             case site
             case roomNumber = "room_number"
+            case isVirtual = "is_virtual"
         }
         struct Site: Decodable {
             let name: Lang
             struct Lang: Decodable { let ru: String; let en: String }
         }
+    }
+
+    struct GroupBox: Decodable {
+        let id: Int
+        let name: Lang
+        let description: LangOptional?
+        struct Lang: Decodable { let ru: String; let en: String }
+        struct LangOptional: Decodable { let ru: String?; let en: String? }
     }
 }
