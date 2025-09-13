@@ -7,12 +7,11 @@
 
 import Foundation
 
-struct Schedule: Decodable {
-    let days: [String: [Lesson]]
+/// Доменная модель расписания: ключ — строка-дата от API ("2025-03-29")
+public struct Schedule: Equatable, Hashable {
+    public let days: [String: [Lesson]]
 
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let raw = try container.decode([String: [Lesson]?].self)
-        self.days = raw.mapValues { $0 ?? [] }
+    public init(days: [String: [Lesson]]) {
+        self.days = days
     }
 }

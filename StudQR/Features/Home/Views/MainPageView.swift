@@ -12,19 +12,15 @@ struct MainPageView: View {
     @AppStorage("selectedLanguage") private var selectedLanguage = "ru"
 
     @State private var todayLessons: [Lesson] = []
-    @State private var fetchedWeekType: String?
 
     var body: some View {
         NavigationView {
             ZStack {
-                Color.appBackground
-                    .ignoresSafeArea()
-
+                Color.appBackground.ignoresSafeArea()
                 VStack {
                     HStack {
                         Text(localized("today_title"))
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
+                            .font(.largeTitle).fontWeight(.bold)
                             .foregroundColor(.primaryText)
                         Spacer()
                         NavigationLink(destination: SettingsView()) {
@@ -33,15 +29,13 @@ struct MainPageView: View {
                         }
                     }
                     .padding(.horizontal)
+
                     if todayLessons.isEmpty {
                         VStack {
                             Text(localized("no_classes_today"))
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
+                                .font(.largeTitle).fontWeight(.bold)
                                 .foregroundColor(.secondaryText)
-
-                            Text("😃")
-                                .font(.system(size: 80))
+                            Text("😃").font(.system(size: 80))
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
@@ -55,33 +49,33 @@ struct MainPageView: View {
                 }
             }
             .onAppear {
-                if authViewModel.isAuthenticated {
-                    loadTodaySchedule()
-                }
+                if authViewModel.isAuthenticated { loadTodaySchedule() }
             }
         }
     }
 
-    func localized(_ key: String) -> String {
+    private func localized(_ key: String) -> String {
         let languageCode = selectedLanguage == "en" ? "en" : "ru"
         let path = Bundle.main.path(forResource: languageCode, ofType: "lproj") ?? ""
         let bundle = Bundle(path: path) ?? .main
         return NSLocalizedString(key, tableName: nil, bundle: bundle, value: "", comment: "")
     }
 
-    func loadTodaySchedule() {
+    private func loadTodaySchedule() {
         let today = Date()
-        
         authViewModel.fetchSchedule(for: today) { lessons in
-            DispatchQueue.main.async {
-                self.todayLessons = lessons
-            }
+            DispatchQueue.main.async { self.todayLessons = lessons }
         }
     }
 }
 
 #Preview {
-    MainPageView()
-        .environmentObject(AuthViewModel())
+    // Превью без реальной сети
+    let vm = AuthViewModel(api: MockAuthNetworking())
+    vm.token = "preview-token"
+    vm.isAuthenticated = true
+
+    return MainPageView()
+        .environmentObject(vm)
         .environmentObject(ThemeManager())
 }

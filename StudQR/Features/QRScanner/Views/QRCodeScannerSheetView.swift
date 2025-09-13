@@ -8,22 +8,18 @@
 import SwiftUI
 import AVFoundation
 
-
 struct QRCodeScannerSheetView: UIViewControllerRepresentable {
     class Coordinator: NSObject, AVCaptureMetadataOutputObjectsDelegate {
         var parent: QRCodeScannerSheetView
-
-        init(parent: QRCodeScannerSheetView) {
-            self.parent = parent
-        }
+        init(parent: QRCodeScannerSheetView) { self.parent = parent }
 
         func metadataOutput(_ output: AVCaptureMetadataOutput,
                             didOutput metadataObjects: [AVMetadataObject],
                             from connection: AVCaptureConnection) {
-            if let metadataObject = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
-               let stringValue = metadataObject.stringValue {
+            if let m = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
+               let value = m.stringValue {
                 DispatchQueue.main.async {
-                    self.parent.scannedCode = stringValue
+                    self.parent.scannedCode = value
                     self.parent.presentationMode.wrappedValue.dismiss()
                 }
             }
@@ -33,41 +29,54 @@ struct QRCodeScannerSheetView: UIViewControllerRepresentable {
     @Binding var scannedCode: String
     @Environment(\.presentationMode) var presentationMode
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(parent: self)
-    }
+    // держим сессию, чтобы не умерла раньше времени
+    private let session = AVCaptureSession()
+
+    func makeCoordinator() -> Coordinator { Coordinator(parent: self) }
 
     func makeUIViewController(context: Context) -> UIViewController {
-        let viewController = UIViewController()
-        let session = AVCaptureSession()
+        let vc = UIViewController()
+        vc.view.backgroundColor = .black
 
-        guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else { return viewController }
-        let videoInput = try! AVCaptureDeviceInput(device: videoCaptureDevice)
+        // Вход
+        guard let device = AVCaptureDevice.default(for: .video) else { return vc }
 
-        if session.canAddInput(videoInput) {
-            session.addInput(videoInput)
+        do {
+            let input = try AVCaptureDeviceInput(device: device)
+            if session.canAddInput(input) { session.addInput(input) }
+        } catch {
+            // не удалось получить доступ к камере
+            return vc
         }
 
-        let metadataOutput = AVCaptureMetadataOutput()
-
-        if session.canAddOutput(metadataOutput) {
-            session.addOutput(metadataOutput)
-
-            metadataOutput.setMetadataObjectsDelegate(context.coordinator, queue: DispatchQueue.main)
-            metadataOutput.metadataObjectTypes = [.qr]
+        // Выход (метаданные)
+        let output = AVCaptureMetadataOutput()
+        if session.canAddOutput(output) {
+            session.addOutput(output)
+            output.setMetadataObjectsDelegate(context.coordinator, queue: .main)
+            output.metadataObjectTypes = [.qr]
         }
 
-        let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-        previewLayer.frame = viewController.view.layer.bounds
-        previewLayer.videoGravity = .resizeAspectFill
-        viewController.view.layer.addSublayer(previewLayer)
+        // Превью
+        let preview = AVCaptureVideoPreviewLayer(session: session)
+        preview.frame = vc.view.layer.bounds
+        preview.videoGravity = .resizeAspectFill
+        vc.view.layer.addSublayer(preview)
 
-        
+        // Стартуем асинхронно
         DispatchQueue.global(qos: .userInitiated).async {
-            session.startRunning()
+            self.session.startRunning()
         }
 
-        return viewController
+        return vc
     }
+
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+
+    // Останавливаем камеру, когда вью уходит
+    static func dismantleUIViewController(_ uiViewController: UIViewController, coordinator: Coordinator) {
+        // Пытаемся достать слой и остановить сессию
+        (uiViewController.view.layer.sublayers?.first { $0 is AVCaptureVideoPreviewLayer } as? AVCaptureVideoPreviewLayer)?
+            .session?.stopRunning()
+    }
 }

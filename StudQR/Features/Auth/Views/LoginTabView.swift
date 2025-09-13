@@ -37,6 +37,7 @@ struct LoginTabView: View {
 
                 if !authViewModel.isAuthenticated && !showSuccessMessage {
                     VStack(spacing: 20) {
+                        // Email
                         TextField(localized("email_placeholder"), text: $email)
                             .keyboardType(.emailAddress)
                             .textInputAutocapitalization(.never)
@@ -49,32 +50,13 @@ struct LoginTabView: View {
                                     .stroke(Color.secondaryText.opacity(0.3), lineWidth: 1)
                             )
                             .foregroundColor(.primaryText)
+                            .textContentType(.username)
 
-                        HStack {
-                            if isPasswordVisible {
-                                TextField(localized("password_placeholder"), text: $password)
-                                    .foregroundColor(.primaryText)
-                                    .textContentType(.none)
-                                    .autocorrectionDisabled(true)
-                                    .autocapitalization(.none)
-                            } else {
-                                SecureField(localized("password_placeholder"), text: $password)
-                                    .foregroundColor(.primaryText)
-                            }
-
-                            Button(action: {
-                                isPasswordVisible.toggle()
-                            }) {
-                                Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
-                                    .foregroundColor(.secondaryText)
-                            }
-                        }
-                        .padding()
-                        .background(Color.cardBackground)
-                        .cornerRadius(10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.secondaryText.opacity(0.3), lineWidth: 1)
+                        // Password (вынесено в компонент)
+                        PasswordField(
+                            title: localized("password_placeholder"),
+                            text: $password,
+                            isVisible: $isPasswordVisible
                         )
 
                         if let loginError = loginError {
@@ -83,19 +65,7 @@ struct LoginTabView: View {
                                 .font(.footnote)
                         }
 
-                        Button(action: {
-                            loginError = nil
-                            authViewModel.login(email: email, password: password) { success in
-                                if success {
-                                    showSuccessMessage = true
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                        showSuccessMessage = false
-                                    }
-                                } else {
-                                    loginError = localized("login_error")
-                                }
-                            }
-                        }) {
+                        Button(action: handleLogin) {
                             HStack {
                                 Image(systemName: "arrow.right.circle.fill")
                                 Text(localized("login_button"))
@@ -106,6 +76,7 @@ struct LoginTabView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.large)
+                        .disabled(email.isEmpty || password.isEmpty)
                     }
                     .padding(.horizontal)
                 }
@@ -113,10 +84,7 @@ struct LoginTabView: View {
                 Spacer()
             }
             .padding()
-            .background(
-                Color.appBackground
-                    .ignoresSafeArea()
-            )
+            .background(Color.appBackground.ignoresSafeArea())
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink(destination: SettingsView()) {
@@ -128,7 +96,21 @@ struct LoginTabView: View {
         }
     }
 
-    func localized(_ key: String) -> String {
+    private func handleLogin() {
+        loginError = nil
+        authViewModel.login(email: email, password: password) { success in
+            if success {
+                showSuccessMessage = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    showSuccessMessage = false
+                }
+            } else {
+                loginError = localized("login_error")
+            }
+        }
+    }
+
+    private func localized(_ key: String) -> String {
         let languageCode = selectedLanguage == "en" ? "en" : "ru"
         let path = Bundle.main.path(forResource: languageCode, ofType: "lproj") ?? ""
         let bundle = Bundle(path: path) ?? .main
@@ -138,6 +120,6 @@ struct LoginTabView: View {
 
 #Preview {
     LoginTabView()
-        .environmentObject(AuthViewModel())
+        .environmentObject(AuthViewModel(api: MockAuthNetworking()))
         .environmentObject(ThemeManager())
 }
