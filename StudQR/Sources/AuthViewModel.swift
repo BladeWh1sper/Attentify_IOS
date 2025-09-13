@@ -173,43 +173,50 @@ class AuthViewModel: ObservableObject {
         isAuthenticated = false
     }
     
-    func fetchSchedule(weekType: String) {
-        guard let token = token else { return }
+    func fetchSchedule(for date: Date, completion: @escaping ([Lesson]) -> Void) {
+        guard let token = token else {
+            completion([])
+            return
+        }
 
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let dateString = formatter.string(from: date)
         let baseUrl = Constants.baseURL + Constants.scheduleEndpoint
-        guard var components = URLComponents(string: baseUrl) else { return }
+        guard var components = URLComponents(string: baseUrl) else {
+            print("❌ Invalid base URL")
+            completion([])
+            return
+        }
 
-        components.queryItems = [
-            URLQueryItem(name: "week_type", value: weekType) // upper или bottom
-        ]
+        components.queryItems = [URLQueryItem(name: "target_date", value: dateString)]
 
-        guard let url = components.url else { return }
+        guard let url = components.url else {
+            print("❌ Invalid composed URL")
+            completion([])
+            return
+        }
 
         var request = URLRequest(url: url)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.httpMethod = "GET"
 
         URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("Schedule fetch error:", error)
-                return
-            }
-
             guard let data = data else {
-                print("No data for schedule")
+                print("❌ No data:", error ?? "")
+                completion([])
                 return
             }
 
             do {
-                let decoded = try JSONDecoder().decode(Schedule.self, from: data)
-                DispatchQueue.main.async {
-                    self.schedule = decoded
-                }
+                let lessons = try JSONDecoder().decode([Lesson].self, from: data)
+                completion(lessons)
             } catch {
-                print("❌ Schedule decoding error:", error)
+                print("❌ Decoding error:", error)
                 if let raw = String(data: data, encoding: .utf8) {
                     print("Returned:", raw)
                 }
+                completion([])
             }
         }.resume()
     }
